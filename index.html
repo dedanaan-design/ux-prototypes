@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>District Longitudinal Chart Prototype</title>
+  <script src="https://code.highcharts.com/highcharts.js"></script>
+</head>
+<body>
+  <h1>District Longitudinal Chart Prototype</h1>
+  <div id="container" style="width:100%; height:400px;"></div>
+
+  <script>
+    Highcharts.chart('container', {
+      title: { text: 'Demo Chart' },
+      xAxis: { categories: ['2019', '2020', '2021', '2022', '2023'] },
+      series: [
+        { name: 'District A', data: [75, 80, 82, 85, 90] },
+        { name: 'District B', data: [65, 68, 70, 74, 76] }
+      ]
+    });
+  </script>
+</body>
+</html>
