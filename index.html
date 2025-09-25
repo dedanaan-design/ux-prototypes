@@ -2,22 +2,41 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>District Longitudinal Chart Prototype</title>
-  <script src="https://code.highcharts.com/highcharts.js"></script>
+  <title>Acacia Prototype Library</title>
+  <style>
+    body { font-family: sans-serif; max-width: 800px; margin: 2rem auto; line-height: 1.6; }
+    h1 { margin-bottom: 1rem; }
+    ul { list-style: none; padding: 0; }
+    li { margin-bottom: 1.2rem; }
+    a { font-weight: bold; color: #0073e6; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .desc { font-size: 0.9em; color: #555; }
+  </style>
 </head>
 <body>
-  <h1>District Longitudinal Chart Prototype</h1>
-  <div id="container" style="width:100%; height:400px;"></div>
-
-  <script>
-    Highcharts.chart('container', {
-      title: { text: 'Demo Chart v02' },
-      xAxis: { categories: ['2019', '2020', '2021', '2022', '2023'] },
-      series: [
-        { name: 'District A', data: [75, 80, 82, 85, 90] },
-        { name: 'District B', data: [65, 68, 70, 74, 76] }
-      ]
-    });
-  </script>
+  <h1>Acacia Prototype Library</h1>
+  <p>Click a link below to open each prototype in a new tab:</p>
+  <ul>
+    <li>
+      <a href="prototypes/01-single-select.html" target="_blank">Progressive Single Select</a><br>
+      <span class="desc">Radio-button version. Only one item at each level can be selected.</span>
+    </li>
+    <li>
+      <a href="prototypes/02-multi-select.html" target="_blank">Progressive Multi-Select</a><br>
+      <span class="desc">Checkbox version with “Select All” at each stage. Allows multiple selections per level.</span>
+    </li>
+    <li>
+      <a href="prototypes/03-hybrid-select.html" target="_blank">Progressive Hybrid Select</a><br>
+      <span class="desc">User can switch between single and multi-select modes. Includes smart “Select All.”</span>
+    </li>
+    <li>
+      <a href="prototypes/04-no-mixed-level.html" target="_blank">Hybrid (Prevent Mixed-Level Comparisons)</a><br>
+      <span class="desc">Blocks child-level disclosure when multiple parent items are selected.</span>
+    </li>
+    <li>
+      <a href="prototypes/05-drilldown-table.html" target="_blank">Drilldown + Table</a><br>
+      <span class="desc">Checkbox-only progressive selection with breadcrumbs, filter chips, and a linked drilldown table.</span>
+    </li>
+  </ul>
 </body>
 </html>

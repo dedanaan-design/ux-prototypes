@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Progressive Hybrid Selection with Smart Select All</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    h2 { margin-bottom: 1em; }
+
+    .row {
+      display: flex;
+      gap: 20px;
+    }
+    .stage {
+      width: 450px;
+      height: 150px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      padding: 10px;
+      overflow-y: auto;
+    }
+    .stage label.title {
+      font-weight: bold;
+      display: block;
+      margin-bottom: 4px;
+    }
+    .toggle {
+      font-size: 0.85em;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .group { margin: 4px 0; }
+    #output { margin-top: 20px; font-weight: bold; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h2>Progressive Hybrid Selection (User-Configurable)</h2>
+
+  <div class="row">
+    <div>
+      <label class="title">Regions</label>
+      <div class="toggle">
+        <input type="checkbox" id="multiRegion">
+        <label for="multiRegion">Allow multiple</label>
+      </div>
+      <div class="stage" id="regionsStage"></div>
+    </div>
+
+    <div>
+      <label class="title">Districts</label>
+      <div class="toggle">
+        <input type="checkbox" id="multiDistrict">
+        <label for="multiDistrict">Allow multiple</label>
+      </div>
+      <div class="stage" id="districtsStage"></div>
+    </div>
+
+    <div>
+      <label class="title">Schools</label>
+      <div class="toggle">
+        <input type="checkbox" id="multiSchool">
+        <label for="multiSchool">Allow multiple</label>
+      </div>
+      <div class="stage" id="schoolsStage"></div>
+    </div>
+  </div>
+
+  <button id="go">Go</button>
+  <div id="output"></div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const data = {
+    north: {
+      D1: ["North School A", "North School B", "North School C"],
+      D2: ["North School D", "North School E"]
+    },
+    south: {
+      D3: ["South School A", "South School B"],
+      D4: ["South School C", "South School D", "South School E"]
+    }
+  };
+
+  const stages = {
+    region: document.getElementById("regionsStage"),
+    district: document.getElementById("districtsStage"),
+    school: document.getElementById("schoolsStage")
+  };
+
+  const toggles = {
+    region: document.getElementById("multiRegion"),
+    district: document.getElementById("multiDistrict"),
+    school: document.getElementById("multiSchool")
+  };
+
+  // utility to make input
+  function makeInput(level, value, label, container, groupName, isSelectAll=false) {
+    const div = document.createElement("div");
+    div.className = "group";
+    const input = document.createElement("input");
+    input.type = toggles[level].checked ? "checkbox" : "radio";
+    input.name = toggles[level].checked ? `${groupName}_${value}` : groupName;
+    input.value = value;
+    if (isSelectAll) input.classList.add("select-all");
+    const lbl = document.createElement("label");
+    lbl.textContent = label;
+    lbl.style.marginLeft = "6px";
+    div.appendChild(input);
+    div.appendChild(lbl);
+    container.appendChild(div);
+    return input;
+  }
+
+  function buildRegions() {
+    stages.region.innerHTML = "";
+    if (toggles.region.checked) {
+      makeInput("region", "all", "Select All", stages.region, "region", true);
+    }
+    Object.keys(data).forEach(region => {
+      makeInput("region", region, region.toUpperCase(), stages.region, "region");
+    });
+  }
+
+  function updateDistricts() {
+    stages.district.innerHTML = "";
+    stages.school.innerHTML = "";
+
+    const selectedRegions = toggles.region.checked
+      ? Array.from(stages.region.querySelectorAll("input[type=checkbox][name^=region_]:checked"))
+          .map(cb => cb.value).filter(v => v !== "all")
+      : [stages.region.querySelector("input[name=region]:checked")?.value].filter(Boolean);
+
+    if (toggles.district.checked) {
+      makeInput("district", "all", "Select All", stages.district, "district", true);
+    }
+
+    selectedRegions.forEach(region => {
+      Object.keys(data[region]).forEach(district => {
+        makeInput("district", `${region}|${district}`, `${region.toUpperCase()} – ${district}`, stages.district, "district");
+      });
+    });
+  }
+
+  function updateSchools() {
+    stages.school.innerHTML = "";
+
+    const selectedDistricts = toggles.district.checked
+      ? Array.from(stages.district.querySelectorAll("input[type=checkbox][name^=district_]:checked"))
+          .map(cb => cb.value).filter(v => v !== "all")
+      : [stages.district.querySelector("input[name=district]:checked")?.value].filter(Boolean);
+
+    if (toggles.school.checked) {
+      makeInput("school", "all", "Select All", stages.school, "school", true);
+    }
+
+    selectedDistricts.forEach(val => {
+      const [region, district] = val.split("|");
+      if (region && district) {
+        data[region][district].forEach(school => {
+          makeInput("school", `${region}|${district}|${school}`, `${region.toUpperCase()} – ${district} – ${school}`, stages.school, "school");
+        });
+      }
+    });
+  }
+
+  // smart select all updater
+  function updateSelectAll(container) {
+    const selectAll = container.querySelector(".select-all");
+    if (!selectAll) return;
+
+    const children = container.querySelectorAll("input[type=checkbox]:not(.select-all)");
+    const checkedChildren = Array.from(children).filter(cb => cb.checked);
+
+    if (checkedChildren.length === 0) {
+      selectAll.checked = false;
+      selectAll.indeterminate = false;
+    } else if (checkedChildren.length === children.length) {
+      selectAll.checked = true;
+      selectAll.indeterminate = false;
+    } else {
+      selectAll.checked = false;
+      selectAll.indeterminate = true;
+    }
+  }
+
+  // handle select all clicks + update
+  document.body.addEventListener("change", e => {
+    if (e.target.classList.contains("select-all")) {
+      const container = e.target.closest(".stage");
+      const boxes = container.querySelectorAll("input[type=checkbox]:not(.select-all)");
+      boxes.forEach(cb => cb.checked = e.target.checked);
+    }
+    // keep all Select All states synced
+    updateSelectAll(stages.region);
+    updateSelectAll(stages.district);
+    updateSelectAll(stages.school);
+
+    // cascade updates
+    if (e.target.name.startsWith("region")) updateDistricts();
+    if (e.target.name.startsWith("district")) updateSchools();
+  });
+
+  // rebuild when toggles change
+  toggles.region.addEventListener("change", buildRegions);
+  toggles.district.addEventListener("change", updateDistricts);
+  toggles.school.addEventListener("change", updateSchools);
+
+  // cascading updates
+  stages.region.addEventListener("change", updateDistricts);
+  stages.district.addEventListener("change", updateSchools);
+
+  document.getElementById("go").onclick = () => {
+    const regs = toggles.region.checked
+      ? Array.from(stages.region.querySelectorAll("input[type=checkbox][name^=region_]:checked"))
+          .map(cb => cb.value.toUpperCase()).filter(v => v !== "ALL")
+      : [stages.region.querySelector("input[name=region]:checked")?.value?.toUpperCase()].filter(Boolean);
+
+    const dists = toggles.district.checked
+      ? Array.from(stages.district.querySelectorAll("input[type=checkbox][name^=district_]:checked"))
+          .map(cb => cb.nextSibling.textContent).filter(v => !v.includes("Select All"))
+      : [stages.district.querySelector("input[name=district]:checked")?.nextSibling.textContent].filter(Boolean);
+
+    const schs = toggles.school.checked
+      ? Array.from(stages.school.querySelectorAll("input[type=checkbox][name^=school_]:checked"))
+          .map(cb => cb.nextSibling.textContent).filter(v => !v.includes("Select All"))
+      : [stages.school.querySelector("input[name=school]:checked")?.nextSibling.textContent].filter(Boolean);
+
+    output.textContent =
+      `Regions: ${regs.join(", ")}\n` +
+      `Districts: ${dists.join(", ")}\n` +
+      `Schools: ${schs.join(", ")}`;
+  };
+
+  // init
+  buildRegions();
+});
+</script>
+</body>
+</html>

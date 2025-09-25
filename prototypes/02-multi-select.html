@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Progressive Multi-Selection (Scrollable + Select All)</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    h2 { margin-bottom: 1em; }
+
+    .row {
+      display: flex;
+      gap: 20px;
+    }
+    .stage {
+      flex: 1;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      padding: 10px;
+      max-height: 150px;
+      max-width: 450px;
+      overflow-y: auto;
+    }
+    .stage label.title {
+      font-weight: bold;
+      display: block;
+      margin-bottom: 8px;
+    }
+    .group { margin: 4px 0; }
+    #output { margin-top: 20px; font-weight: bold; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h2>Progressive Multi-Selection (Checkbox Version)</h2>
+
+  <div class="row">
+    <div class="stage" id="regionsStage">
+      <label class="title">Regions</label>
+    </div>
+    <div class="stage" id="districtsStage">
+      <label class="title">Districts</label>
+    </div>
+    <div class="stage" id="schoolsStage">
+      <label class="title">Schools</label>
+    </div>
+  </div>
+
+  <button id="go">Go</button>
+  <div id="output"></div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const data = {
+    north: {
+      D1: ["North School A", "North School B", "North School C"],
+      D2: ["North School D", "North School E"]
+    },
+    south: {
+      D3: ["South School A", "South School B"],
+      D4: ["South School C", "South School D", "South School E"]
+    }
+  };
+
+  const regionsStage = document.getElementById("regionsStage");
+  const districtsStage = document.getElementById("districtsStage");
+  const schoolsStage = document.getElementById("schoolsStage");
+  const output = document.getElementById("output");
+
+  // utility to make checkboxes
+  function makeCheckbox(name, value, label, container) {
+    const div = document.createElement("div");
+    div.className = "group";
+    const cb = document.createElement("input");
+    cb.type = "checkbox";
+    cb.name = name;
+    cb.value = value;
+    const lbl = document.createElement("label");
+    lbl.textContent = label;
+    lbl.style.marginLeft = "6px";
+    div.appendChild(cb);
+    div.appendChild(lbl);
+    container.appendChild(div);
+    return cb;
+  }
+
+  // add "Select All" checkbox
+  function addSelectAll(container, targetName) {
+    const div = document.createElement("div");
+    div.className = "group";
+    const cb = document.createElement("input");
+    cb.type = "checkbox";
+    cb.className = "select-all";
+    cb.dataset.target = targetName;
+    const lbl = document.createElement("label");
+    lbl.textContent = "Select All";
+    lbl.style.marginLeft = "6px";
+    div.appendChild(cb);
+    div.appendChild(lbl);
+    container.appendChild(div);
+  }
+
+  // build initial region checkboxes
+  addSelectAll(regionsStage, "region");
+  Object.keys(data).forEach(region => {
+    makeCheckbox("region", region, region.toUpperCase(), regionsStage);
+  });
+
+  function updateDistricts() {
+    districtsStage.querySelectorAll(".group").forEach(el => el.remove());
+    schoolsStage.querySelectorAll(".group").forEach(el => el.remove());
+
+    addSelectAll(districtsStage, "district");
+
+    const selectedRegions = Array.from(document.querySelectorAll("input[name=region]:checked"))
+      .map(cb => cb.value);
+
+    selectedRegions.forEach(region => {
+      Object.keys(data[region]).forEach(district => {
+        makeCheckbox("district", `${region}|${district}`, `${region.toUpperCase()} – ${district}`, districtsStage);
+      });
+    });
+  }
+
+  function updateSchools() {
+    schoolsStage.querySelectorAll(".group").forEach(el => el.remove());
+
+    addSelectAll(schoolsStage, "school");
+
+    const selectedDistricts = Array.from(document.querySelectorAll("input[name=district]:checked"))
+      .map(cb => cb.value);
+
+    selectedDistricts.forEach(val => {
+      const [region, district] = val.split("|");
+      data[region][district].forEach(school => {
+        makeCheckbox("school", `${region}|${district}|${school}`, `${region.toUpperCase()} – ${district} – ${school}`, schoolsStage);
+      });
+    });
+  }
+
+  // handle "Select All" behavior
+  document.body.addEventListener("change", e => {
+    if (e.target.classList.contains("select-all")) {
+      const targetName = e.target.dataset.target;
+      const checkboxes = e.target.closest(".stage").querySelectorAll(`input[name=${targetName}]`);
+      checkboxes.forEach(cb => cb.checked = e.target.checked);
+      if (targetName === "region") updateDistricts();
+      if (targetName === "district") updateSchools();
+    } else if (e.target.name === "region") {
+      updateDistricts();
+    } else if (e.target.name === "district") {
+      updateSchools();
+    }
+  });
+
+  document.getElementById("go").onclick = () => {
+    const regs = Array.from(document.querySelectorAll("input[name=region]:checked")).map(cb => cb.value.toUpperCase());
+    const dists = Array.from(document.querySelectorAll("input[name=district]:checked")).map(cb => cb.nextSibling.textContent);
+    const schs = Array.from(document.querySelectorAll("input[name=school]:checked")).map(cb => cb.nextSibling.textContent);
+
+    output.textContent =
+      `Regions: ${regs.join(", ")}\n` +
+      `Districts: ${dists.join(", ")}\n` +
+      `Schools: ${schs.join(", ")}`;
+  };
+});
+</script>
+</body>
+</html>

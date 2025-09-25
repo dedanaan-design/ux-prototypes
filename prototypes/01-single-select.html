@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Progressive Single-Selection (Scrollable Boxes)</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    h2 { margin-bottom: 1em; }
+
+    .row {
+      display: flex;
+      gap: 20px;
+    }
+    .stage {
+      flex: 1;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      padding: 10px;
+      max-height: 150px;
+      max-width: 450px;
+      overflow-y: auto;
+    }
+    .stage label.title {
+      font-weight: bold;
+      display: block;
+      margin-bottom: 8px;
+    }
+    .group { margin: 4px 0; }
+    #output { margin-top: 20px; font-weight: bold; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h2>Progressive Single-Selection (Radio Button Version)</h2>
+
+  <div class="row">
+    <div class="stage" id="regionsStage">
+      <label class="title">Regions</label>
+    </div>
+    <div class="stage" id="districtsStage">
+      <label class="title">Districts</label>
+    </div>
+    <div class="stage" id="schoolsStage">
+      <label class="title">Schools</label>
+    </div>
+  </div>
+
+  <button id="go">Go</button>
+  <div id="output"></div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const data = {
+    north: {
+      D1: ["North School A", "North School B", "North School C"],
+      D2: ["North School D", "North School E"]
+    },
+    south: {
+      D3: ["South School A", "South School B"],
+      D4: ["South School C", "South School D", "South School E"]
+    }
+  };
+
+  const regionsStage = document.getElementById("regionsStage");
+  const districtsStage = document.getElementById("districtsStage");
+  const schoolsStage = document.getElementById("schoolsStage");
+  const output = document.getElementById("output");
+
+  // utility to make radio buttons
+  function makeRadio(name, value, label, container) {
+    const div = document.createElement("div");
+    div.className = "group";
+    const rb = document.createElement("input");
+    rb.type = "radio";
+    rb.name = name;
+    rb.value = value;
+    const lbl = document.createElement("label");
+    lbl.textContent = label;
+    lbl.style.marginLeft = "6px";
+    div.appendChild(rb);
+    div.appendChild(lbl);
+    container.appendChild(div);
+    return rb;
+  }
+
+  // build initial region radios
+  Object.keys(data).forEach(region => {
+    makeRadio("region", region, region.toUpperCase(), regionsStage);
+  });
+
+  function updateDistricts() {
+    districtsStage.querySelectorAll(".group").forEach(el => el.remove());
+    schoolsStage.querySelectorAll(".group").forEach(el => el.remove());
+
+    const selectedRegion = document.querySelector("input[name=region]:checked");
+    if (!selectedRegion) return;
+
+    Object.keys(data[selectedRegion.value]).forEach(district => {
+      makeRadio("district", `${selectedRegion.value}|${district}`, `${selectedRegion.value.toUpperCase()} – ${district}`, districtsStage);
+    });
+  }
+
+  function updateSchools() {
+    schoolsStage.querySelectorAll(".group").forEach(el => el.remove());
+
+    const selectedDistrict = document.querySelector("input[name=district]:checked");
+    if (!selectedDistrict) return;
+
+    const [region, district] = selectedDistrict.value.split("|");
+    data[region][district].forEach(school => {
+      makeRadio("school", `${region}|${district}|${school}`, `${region.toUpperCase()} – ${district} – ${school}`, schoolsStage);
+    });
+  }
+
+  regionsStage.addEventListener("change", updateDistricts);
+  districtsStage.addEventListener("change", updateSchools);
+
+  document.getElementById("go").onclick = () => {
+    const region = document.querySelector("input[name=region]:checked")?.value.toUpperCase() || "";
+    const district = document.querySelector("input[name=district]:checked")?.nextSibling.textContent || "";
+    const school = document.querySelector("input[name=school]:checked")?.nextSibling.textContent || "";
+
+    output.textContent =
+      `Region: ${region}\n` +
+      `District: ${district}\n` +
+      `School: ${school}`;
+  };
+});
+</script>
+</body>
+</html>
