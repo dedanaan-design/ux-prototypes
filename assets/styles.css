@@ -1,0 +1,49 @@
+/* === Prototype Sandbox Common Styles === */
+
+/* Prevent content from breaking layout */
+body {
+  margin: 0;
+  font-family: sans-serif;
+  overflow-x: auto; /* allow horizontal scroll if needed */
+  line-height: 1.5;
+}
+
+/* Standard max width for prototypes (matches chart/table) */
+.container {
+  max-width: 1500px;
+}
+
+/* Headings */
+h1, h2, h3 {
+  margin: 0.5rem 0;
+}
+
+/* Reusable scrollable container */
+.scroll-container {
+  overflow-x: auto;
+  width: 100%;
+}
+
+/* Chips */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 16px;
+  background: #e6f0ff;
+  color: #004080;
+  font-size: 0.9em;
+}
+.chip button {
+  border: none;
+  background: none;
+  margin-left: 6px;
+  cursor: pointer;
+  color: #004080;
+  font-weight: bold;
+  font-size: 1em;
+  line-height: 1;
+}
+.chip button:hover {
+  color: #c00;
+}

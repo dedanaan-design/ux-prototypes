@@ -2,41 +2,121 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Acacia Prototype Library</title>
+  <title>Prototype Sandbox</title>
   <style>
-    body { font-family: sans-serif; max-width: 800px; margin: 2rem auto; line-height: 1.6; }
-    h1 { margin-bottom: 1rem; }
-    ul { list-style: none; padding: 0; }
-    li { margin-bottom: 1.2rem; }
-    a { font-weight: bold; color: #0073e6; text-decoration: none; }
-    a:hover { text-decoration: underline; }
-    .desc { font-size: 0.9em; color: #555; }
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      display: flex;
+      height: 100vh;
+    }
+
+    /* Sidebar */
+    nav {
+      width: 260px;
+      background: #f8f8f8;
+      border-right: 1px solid #ccc;
+      padding: 1rem;
+      overflow-y: auto;
+    }
+    nav h2 {
+      font-size: 1.1rem;
+      margin: 1rem 0 0.5rem;
+    }
+    nav ul {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 1rem 0;
+    }
+    nav li {
+      margin: 0.25rem 0;
+    }
+    nav a {
+      color: #0073e6;
+      text-decoration: none;
+      font-size: 0.95rem;
+    }
+    nav a:hover {
+      text-decoration: underline;
+    }
+
+    /* Main content */
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      background: #0073e6;
+      color: white;
+      padding: 1rem;
+      font-size: 1.25rem;
+      font-weight: bold;
+    }
+    iframe {
+      flex: 1;
+      width: 100%;
+      border: none;
+    }
   </style>
 </head>
 <body>
-  <h1>Acacia Prototype Library</h1>
-  <p>Click a link below to open each prototype in a new tab:</p>
-  <ul>
-    <li>
-      <a href="prototypes/01-single-select.html" target="_blank">Progressive Single Select</a><br>
-      <span class="desc">Radio-button version. Only one item at each level can be selected.</span>
-    </li>
-    <li>
-      <a href="prototypes/02-multi-select.html" target="_blank">Progressive Multi-Select</a><br>
-      <span class="desc">Checkbox version with “Select All” at each stage. Allows multiple selections per level.</span>
-    </li>
-    <li>
-      <a href="prototypes/03-hybrid-select.html" target="_blank">Progressive Hybrid Select</a><br>
-      <span class="desc">User can switch between single and multi-select modes. Includes smart “Select All.”</span>
-    </li>
-    <li>
-      <a href="prototypes/04-no-mixed-level.html" target="_blank">Hybrid (Prevent Mixed-Level Comparisons)</a><br>
-      <span class="desc">Blocks child-level disclosure when multiple parent items are selected.</span>
-    </li>
-    <li>
-      <a href="prototypes/05-drilldown-table.html" target="_blank">Drilldown + Table</a><br>
-      <span class="desc">Checkbox-only progressive selection with breadcrumbs, filter chips, and a linked drilldown table.</span>
-    </li>
-  </ul>
+
+  <!-- Sidebar menu -->
+  <nav id="menu"></nav>
+
+  <!-- Main content -->
+  <main>
+    <header>
+  Prototype Sandbox
+  <button onclick="document.querySelector('iframe').src='welcome.html'" style="
+    margin-left: 20px;
+    padding: 4px 10px;
+    font-size: 0.9rem;
+    cursor: pointer;
+  ">
+    Back to Welcome
+  </button>
+  </header>
+
+    <!-- Default content page -->
+    <iframe name="prototypeFrame" src="welcome.html"></iframe>
+  </main>
+
+  <script>
+    async function buildMenu() {
+      try {
+        const response = await fetch("menu.json");
+        const menuData = await response.json();
+
+        const nav = document.getElementById("menu");
+
+        for (const category in menuData) {
+          const h2 = document.createElement("h2");
+          h2.textContent = category;
+          nav.appendChild(h2);
+
+          const ul = document.createElement("ul");
+
+          menuData[category].forEach(item => {
+            const li = document.createElement("li");
+            const link = document.createElement("a");
+            link.href = item.file;
+            link.target = "prototypeFrame";
+            link.textContent = item.title;
+            li.appendChild(link);
+            ul.appendChild(li);
+          });
+
+          nav.appendChild(ul);
+        }
+      } catch (err) {
+        console.error("Error loading menu.json", err);
+      }
+    }
+
+    buildMenu();
+  </script>
+
 </body>
 </html>

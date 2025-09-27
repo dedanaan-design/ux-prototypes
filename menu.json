@@ -1,0 +1,30 @@
+{
+  "Single Select": [
+    {
+      "title": "Progressive Single Select",
+      "file": "prototypes/01-single-select.html"
+    }
+  ],
+  "Multi Select": [
+    {
+      "title": "Progressive Multi Select",
+      "file": "prototypes/02-multi-select.html"
+    }
+  ],
+  "Hybrid": [
+    {
+      "title": "Progressive Hybrid Select",
+      "file": "prototypes/03-hybrid-select.html"
+    },
+    {
+      "title": "Hybrid (No Mixed-Level)",
+      "file": "prototypes/04-no-mixed-level.html"
+    }
+  ],
+  "Drilldown": [
+    {
+      "title": "Drilldown + Table",
+      "file": "prototypes/05-drilldown-table.html"
+    }
+  ]
+}
