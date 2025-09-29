@@ -26,5 +26,12 @@
       "title": "Drilldown + Table",
       "file": "prototypes/05-drilldown-table.html"
     }
+  ],
+    "Charts": [
+    {
+      "title": "JSFiddle (Longitudinal Report)",
+      "file": "prototypes/06-jsfiddle.html"
+    }
   ]
+  
 }
