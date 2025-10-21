@@ -27,11 +27,14 @@
       "file": "prototypes/05-drilldown-table.html"
     }
   ],
-    "Charts": [
+  "Charts": [
     {
       "title": "JSFiddle (Longitudinal Report)",
       "file": "prototypes/06-jsfiddle.html"
+    },
+    {
+      "title": "Highcharts base report example",
+      "file": "prototypes/07-highcharts-ela-g5-base-report.html"
     }
   ]
-  
 }
