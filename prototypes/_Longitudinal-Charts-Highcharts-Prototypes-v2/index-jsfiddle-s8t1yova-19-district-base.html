@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html>
+
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>District Longitudinal Report – Dummy Data 02</title>
+
+  <style>
+    * {
+    font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Roboto,
+        Helvetica,
+        Arial,
+        "Apple Color Emoji",
+        "Segoe UI Emoji",
+        "Segoe UI Symbol",
+        sans-serif;
+}
+
+.highcharts-figure,
+.highcharts-data-table table {
+    min-width: 360px;
+    max-width: 1500px;
+    margin: 1em auto;
+}
+
+.highcharts-data-table table {
+    font-family: Verdana, sans-serif;
+    border-collapse: collapse;
+    border: 1px solid var(--highcharts-neutral-color-10, #e6e6e6);
+    margin: 10px auto;
+    text-align: center;
+    width: 100%;
+    max-width: 500px;
+}
+
+.highcharts-data-table caption {
+    padding: 1em 0;
+    font-size: 1.2em;
+    color: var(--highcharts-neutral-color-60, #666);
+}
+
+.highcharts-data-table th {
+    font-weight: 600;
+    padding: 0.5em;
+}
+
+.highcharts-data-table td,
+.highcharts-data-table th,
+.highcharts-data-table caption {
+    padding: 0.5em;
+}
+
+.highcharts-data-table thead tr,
+.highcharts-data-table tbody tr:nth-child(even) {
+    background: var(--highcharts-neutral-color-3, #f7f7f7);
+}
+
+.highcharts-description {
+    margin: 0.3rem 10px;
+}
+
+
+@media (prefers-color-scheme: dark) {
+    body {
+        background-color: #141414;
+        color: #ffffff;
+    }
+}
+  </style>
+
+  
+</head>
+<body>
+  <!-- Highcharts core -->
+<script src="https://code.highcharts.com/highcharts.js"></script>
+
+<!-- Optional modules -->
+<script src="https://code.highcharts.com/modules/series-label.js"></script>
+<script src="https://code.highcharts.com/modules/exporting.js"></script>
+<script src="https://code.highcharts.com/modules/export-data.js"></script>
+<script src="https://code.highcharts.com/modules/accessibility.js"></script>
+
+<!-- Chart container -->
+<div id="container"></div>
+
+
+  <script>
+// === Inline CSV dataset (Lincoln West drill-down) ===
+const csvData = `
+Organization Type,Organization,Parent Organization,Test Administration,Average Scale Score,Group
+State,State Average,,2021–22,2530,Advanced
+State,State Average,,2022–23,2525,Advanced
+State,State Average,,2023–24,2565,Advanced
+State,State Average,,2024–25,2579,Advanced
+State,State Average,,2025–26,2607,Advanced
+Region,ESU-14,State Average,2021–22,2475,On Track
+Region,ESU-14,State Average,2022–23,2487,On Track
+Region,ESU-14,State Average,2023–24,2515,On Track
+Region,ESU-14,State Average,2024–25,2520,On Track
+Region,ESU-14,State Average,2025–26,2540,On Track
+District,Lincoln West School District,ESU-14,2021–22,2430,Developing
+District,Lincoln West School District,ESU-14,2022–23,2465,Developing
+District,Lincoln West School District,ESU-14,2023–24,2474,Developing
+District,Lincoln West School District,ESU-14,2024–25,2511,Developing
+District,Lincoln West School District,ESU-14,2025–26,2484,Developing
+School,Riverbend Elementary,Lincoln West School District,2021–22,2410,Developing
+School,Riverbend Elementary,Lincoln West School District,2022–23,2440,Developing
+School,Riverbend Elementary,Lincoln West School District,2023–24,2460,Developing
+School,Riverbend Elementary,Lincoln West School District,2024–25,2475,Developing
+School,Riverbend Elementary,Lincoln West School District,2025–26,2460,Developing
+`;
+
+// === Parse CSV ===
+const rows = csvData.trim().split(/\r?\n/).map(r => r.split(","));
+const headers = rows[0];
+const orgTypeIndex = headers.indexOf("Organization Type");
+const orgIndex = headers.indexOf("Organization");
+const yearIndex = headers.indexOf("Test Administration");
+const scoreIndex = headers.indexOf("Average Scale Score");
+const groupIndex = headers.indexOf("Group");
+
+// Build categories (unique list of years)
+const categories = [...new Set(rows.slice(1).map(r => r[yearIndex]))];
+
+// Build series grouped by org
+const orgData = {};
+// === Highlighted hierarchy: State (solid), Region (dashed), District (dashed) ===
+rows.slice(1).forEach(row => {
+  const orgType = row[orgTypeIndex];
+  const org = row[orgIndex];
+  const score = parseFloat(row[scoreIndex]);
+  const group = row[groupIndex];
+
+  if (!orgData[org]) {
+    let color, lineWidth = 2, dashStyle = "Solid";
+
+    // --- Highlights ---
+    if (org === "State Average") {
+      // State line: thick, solid black
+      color = "black";
+      lineWidth = 4;
+      dashStyle = "Solid";
+    } 
+    else if (orgType === "Region") {
+      // Region line: thick, dashed blue
+      color = "black";
+      lineWidth = 3;
+      dashStyle = "Dash";
+    } 
+     else if (org === "Lincoln West School District") {
+      // District line: dashed dark gray (comment this block out if not needed)
+      color = "#444";
+       lineWidth = 2;
+       dashStyle = "Dash";
+     } 
+    // --- Default group-based coloring ---
+    else if (group === "Advanced") {
+      color = "#0275D8";
+    } 
+    else if (group === "On Track") {
+      color = "#5CB85C";
+    } 
+    else if (group === "Developing") {
+      color = "#D9534F";
+    }
+
+    orgData[org] = { name: org, data: [], group, color, lineWidth, dashStyle };
+  }
+
+  orgData[org].data.push(score);
+});
+
+// Group headers for legend toggling
+function makeHeaderSeries(groupName) {
+  return {
+    name: groupName,
+    color: "transparent",
+    showInLegend: true,
+    enableMouseTracking: false,
+    marker: { enabled: false },
+    events: {
+      legendItemClick: function (e) {
+        e.preventDefault();
+        const chart = this.chart;
+        chart.series.forEach(s => {
+          if (s.userOptions.group === groupName) {
+            s.setVisible(!s.visible, false);
+          }
+        });
+        chart.redraw();
+      }
+    }
+  };
+}
+
+// === Render chart ===
+Highcharts.chart("container", {
+  chart: { type: "line", height: 650, width: 1380 },
+  title: { text: "General Assessment ELA Grade 5 – Longitudinal Report", align: "center" },
+  xAxis: { categories, title: { text: "School Year" } },
+  yAxis: {
+    title: { text: "Mean Scale Score" },
+    events: {
+      afterSetExtremes: function (e) {
+        const axis = this;
+        while (axis.plotLinesAndBands.length) {
+          axis.plotLinesAndBands[0].destroy();
+        }
+        const bands = [
+          { from: 2250, to: 2500, color: "#FFF3CF", label: "Developing" },
+          { from: 2500, to: 2600, color: "#D4ECD7", label: "On Track" },
+          { from: 2600, to: 2850, color: "#BBDFF3", label: "Advanced" }
+        ];
+        bands.forEach(b => {
+          if (e.min < b.to && e.max > b.from) {
+            axis.addPlotBand({
+              from: Math.max(b.from, e.min),
+              to: Math.min(b.to, e.max),
+              color: b.color,
+              label: { text: b.label, style: { color: "#000" } }
+            });
+          }
+        });
+      }
+    }
+  },
+  legend: { layout: "vertical", align: "right", verticalAlign: "middle", navigation: { enabled: true } },
+  plotOptions: { series: { marker: { enabled: true } } },
+  
+  series: [
+    makeHeaderSeries("Advanced"),
+    ...Object.values(orgData).filter(s => s.group === "Advanced"),
+    makeHeaderSeries("On Track"),
+    ...Object.values(orgData).filter(s => s.group === "On Track"),
+    makeHeaderSeries("Developing"),
+    ...Object.values(orgData).filter(s => s.group === "Developing")
+  ]
+});
+
+  </script>
+</body>
+</html>

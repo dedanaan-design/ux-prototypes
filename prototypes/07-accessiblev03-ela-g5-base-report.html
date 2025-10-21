@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>General Assessment ELA Grade 5 – Accessible Longitudinal Report (Patterned Bands)</title>
+  <script src="https://code.highcharts.com/highcharts.js"></script>
+  <script src="https://code.highcharts.com/modules/pattern-fill.js"></script>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      margin: 1rem;
+    }
+    .highcharts-figure {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    @media (prefers-color-scheme: dark) {
+      body { background-color: #141414; color: #fff; }
+    }
+  </style>
+</head>
+<body>
+<figure class="highcharts-figure"><div id="container"></div></figure>
+
+<script>
+// === Inline dataset ===
+const csvData = `
+Organization Type,Organization,Parent Organization,Test Administration,Average Scale Score,Group
+State,State Average,,2021–22,2530,Advanced
+State,State Average,,2022–23,2525,Advanced
+State,State Average,,2023–24,2565,Advanced
+State,State Average,,2024–25,2579,Advanced
+State,State Average,,2025–26,2607,Advanced
+Region,Horatio Colony Region,State Average,2021–22,2520,Advanced
+Region,Horatio Colony Region,State Average,2022–23,2515,Advanced
+Region,Horatio Colony Region,State Average,2023–24,2550,Advanced
+Region,Horatio Colony Region,State Average,2024–25,2560,Advanced
+Region,Horatio Colony Region,State Average,2025–26,2590,Advanced
+District,Lincoln West School District,Horatio Colony Region,2021–22,2430,Developing
+District,Lincoln West School District,Horatio Colony Region,2022–23,2465,Developing
+District,Lincoln West School District,Horatio Colony Region,2023–24,2474,Developing
+District,Lincoln West School District,Horatio Colony Region,2024–25,2511,Developing
+District,Lincoln West School District,Horatio Colony Region,2025–26,2484,Developing
+`;
+
+const rows = csvData.trim().split(/\r?\n/).map(r => r.split(","));
+const headers = rows[0];
+const orgTypeIndex = headers.indexOf("Organization Type");
+const orgIndex = headers.indexOf("Organization");
+const yearIndex = headers.indexOf("Test Administration");
+const scoreIndex = headers.indexOf("Average Scale Score");
+const groupIndex = headers.indexOf("Group");
+const categories = [...new Set(rows.slice(1).map(r => r[yearIndex]))];
+
+const orgData = {};
+rows.slice(1).forEach(row => {
+  const orgType = row[orgTypeIndex];
+  const org = row[orgIndex];
+  const score = parseFloat(row[scoreIndex]);
+  const group = row[groupIndex];
+
+  if (!orgData[org]) {
+    let color, lineWidth = 2, dashStyle = "Solid";
+    if (org === "State Average") {
+      color = "black"; lineWidth = 4; dashStyle = "Solid";
+    } else if (orgType === "Region") {
+      color = "#0275D8"; lineWidth = 3; dashStyle = "Dash";
+    } else if (org === "Lincoln West School District") {
+      color = "#444"; lineWidth = 3; dashStyle = "Dot";
+    } else if (group === "Advanced") {
+      color = "#0275D8";
+    } else if (group === "On Track") {
+      color = "#5CB85C";
+    } else if (group === "Developing") {
+      color = "#D9534F";
+    }
+    orgData[org] = { name: org, data: [], group, color, lineWidth, dashStyle };
+  }
+  orgData[org].data.push(score);
+});
+
+function makeHeaderSeries(groupName) {
+  return {
+    name: groupName,
+    color: "transparent",
+    showInLegend: true,
+    enableMouseTracking: false,
+    marker: { enabled: false },
+    events: {
+      legendItemClick: function (e) {
+        e.preventDefault();
+        const chart = this.chart;
+        chart.series.forEach(s => {
+          if (s.userOptions.group === groupName) s.setVisible(!s.visible, false);
+        });
+        chart.redraw();
+      }
+    }
+  };
+}
+
+// === Render chart ===
+Highcharts.chart("container", {
+  chart: { type: "line", height: 650 },
+  title: { text: "General Assessment ELA Grade 5 – Longitudinal Report", align: "center" },
+  xAxis: { categories, title: { text: "School Year" } },
+
+  yAxis: {
+    title: { text: "Mean Scale Score" },
+    plotBands: [
+      {
+        from: 2250, to: 2500,
+        color: {
+          pattern: {
+            path: { d: "M 0 0 L 10 10 M 10 0 L 0 10", strokeWidth: 1.5, stroke: "#bbb" },
+            width: 10, height: 10
+          }
+        },
+        label: {
+          text: "Developing",
+          align: "right", x: -50, style: { color: "#000", fontWeight: "bold" }
+        },
+        zIndex: 0
+      },
+      {
+        from: 2500, to: 2600,
+        color: {
+          pattern: {
+            path: { d: "M 0 0 L 10 0 M 0 5 L 10 5", strokeWidth: 1.5, stroke: "#888" },
+            width: 10, height: 10
+          }
+        },
+        label: {
+          text: "On Track",
+          align: "right", x: -50, style: { color: "#000", fontWeight: "bold" }
+        },
+        zIndex: 0
+      },
+      {
+        from: 2600, to: 2850,
+        color: {
+          pattern: {
+            path: { d: "M 2 2 L 2 2 M 6 6 L 6 6", strokeWidth: 2, stroke: "#555" },
+            width: 8, height: 8
+          }
+        },
+        label: {
+          text: "Advanced",
+          align: "right", x: -50, style: { color: "#000", fontWeight: "bold" }
+        },
+        zIndex: 0
+      }
+    ],
+    plotLines: [
+      {
+        value: 2500,
+        color: "#27AE60",
+        dashStyle: "ShortDash",
+        width: 2,
+        label: {
+          text: "Cut: 2500 (On Track)",
+          align: "right",
+          x: -10,
+          style: { color: "#000", fontWeight: "bold", backgroundColor: "#fff" }
+        },
+        zIndex: 3
+      },
+      {
+        value: 2600,
+        color: "#2980B9",
+        dashStyle: "ShortDash",
+        width: 2,
+        label: {
+          text: "Cut: 2600 (Advanced)",
+          align: "right",
+          x: -10,
+          style: { color: "#000", fontWeight: "bold", backgroundColor: "#fff" }
+        },
+        zIndex: 3
+      }
+    ]
+  },
+
+  legend: {
+    layout: "vertical",
+    align: "right",
+    verticalAlign: "middle",
+    navigation: { enabled: true }
+  },
+  plotOptions: { series: { marker: { enabled: true } } },
+
+  series: [
+    makeHeaderSeries("Advanced"),
+    ...Object.values(orgData).filter(s => s.group === "Advanced"),
+    makeHeaderSeries("On Track"),
+    ...Object.values(orgData).filter(s => s.group === "On Track"),
+    makeHeaderSeries("Developing"),
+    ...Object.values(orgData).filter(s => s.group === "Developing")
+  ]
+});
+</script>
+</body>
+</html>
