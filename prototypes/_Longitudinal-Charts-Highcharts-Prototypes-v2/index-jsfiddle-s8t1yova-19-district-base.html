@@ -231,7 +231,7 @@ Highcharts.chart("container", {
     }
   },
 
-  tooltip: {
+tooltip: {
   useHTML: true,
   shared: false,
   formatter: function () {
@@ -245,9 +245,8 @@ Highcharts.chart("container", {
 
     let diffText = "";
     if (diff != null) {
-      const arrow = diff > 0 ? "▲" : diff < 0 ? "▼" : "–";
       const sign = diff > 0 ? "+" : "";
-      diffText = `<br/>From Previous: ${arrow} ${sign}${diff.toFixed(0)}`;
+      diffText = `<br/>From Previous: <b>${sign}${diff.toFixed(0)}</b>`;
     }
 
     return `
