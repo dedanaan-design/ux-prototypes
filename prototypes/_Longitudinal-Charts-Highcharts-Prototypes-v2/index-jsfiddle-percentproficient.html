@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ELA Grade 5 — Percent Proficient (On Track + Advanced)</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      margin: 1rem;
+    }
+    .highcharts-figure {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Highcharts core -->
+<script src="https://code.highcharts.com/highcharts.js"></script>
+
+<!-- Optional modules -->
+<script src="https://code.highcharts.com/modules/series-label.js"></script>
+<script src="https://code.highcharts.com/modules/exporting.js"></script>
+<script src="https://code.highcharts.com/modules/export-data.js"></script>
+<script src="https://code.highcharts.com/modules/accessibility.js"></script>
+
+<figure class="highcharts-figure"><div id="container"></div></figure>
+
+<script>
+/*
+  Dataset format:
+  Organization Type,Organization,Parent Organization,Test Administration,Developing %,On Track %,Advanced %
+  Percent Proficient = On Track % + Advanced %
+  Fabricated trend values for 2021–22 and 2022–23 leading into 2023–24 through 2025–26.
+*/
+const csv = `
+Organization Type,Organization,Parent Organization,Test Administration,Developing %,On Track %,Advanced %
+State,State Average,,2021–22,25,50,25
+State,State Average,,2022–23,24,51,25
+State,State Average,,2023–24,24,47,29
+State,State Average,,2024–25,24,47,29
+State,State Average,,2025–26,23,46,31
+Region,ESU-14,State Average,2021–22,29,45,26
+Region,ESU-14,State Average,2022–23,28,46,26
+Region,ESU-14,State Average,2023–24,27,46,27
+Region,ESU-14,State Average,2024–25,26,46,28
+Region,ESU-14,State Average,2025–26,25,47,28
+District,Lincoln West School District,ESU-14,2021–22,33,44,23
+District,Lincoln West School District,ESU-14,2022–23,35,42,23
+District,Lincoln West School District,ESU-14,2023–24,37,40,23
+District,Lincoln West School District,ESU-14,2024–25,37,40,23
+District,Lincoln West School District,ESU-14,2025–26,35,42,23
+District,Pleasant Valley School District,ESU-14,2021–22,20,48,32
+District,Pleasant Valley School District,ESU-14,2022–23,19,48,33
+District,Pleasant Valley School District,ESU-14,2023–24,17,43,40
+District,Pleasant Valley School District,ESU-14,2024–25,17,43,40
+District,Pleasant Valley School District,ESU-14,2025–26,16,43,41
+District,Anderson School District,ESU-14,2021–22,24,47,29
+District,Anderson School District,ESU-14,2022–23,23,47,30
+District,Anderson School District,ESU-14,2023–24,20,45,35
+District,Anderson School District,ESU-14,2024–25,20,45,35
+District,Anderson School District,ESU-14,2025–26,20,45,35
+District,Coli Lake School District,ESU-14,2021–22,15,45,40
+District,Coli Lake School District,ESU-14,2022–23,13,44,43
+District,Coli Lake School District,ESU-14,2023–24,12,33,55
+District,Coli Lake School District,ESU-14,2024–25,12,33,55
+District,Coli Lake School District,ESU-14,2025–26,11,31,58
+District,Davton School District,ESU-14,2021–22,25,50,25
+District,Davton School District,ESU-14,2022–23,25,50,25
+District,Davton School District,ESU-14,2023–24,25,50,25
+District,Davton School District,ESU-14,2024–25,25,50,25
+District,Davton School District,ESU-14,2025–26,25,50,25
+District,Eastview School District,ESU-14,2021–22,30,50,20
+District,Eastview School District,ESU-14,2022–23,30,50,20
+District,Eastview School District,ESU-14,2023–24,35,45,20
+District,Eastview School District,ESU-14,2024–25,35,45,20
+District,Eastview School District,ESU-14,2025–26,30,50,20
+District,Everton School District,ESU-14,2021–22,14,70,16
+District,Everton School District,ESU-14,2022–23,16,68,16
+District,Everton School District,ESU-14,2023–24,14,70,16
+District,Everton School District,ESU-14,2024–25,14,70,16
+District,Everton School District,ESU-14,2025–26,16,55,29
+District,Gaber Hills School District,ESU-14,2021–22,29,36,35
+District,Gaber Hills School District,ESU-14,2022–23,29,36,35
+District,Gaber Hills School District,ESU-14,2023–24,30,35,35
+District,Gaber Hills School District,ESU-14,2024–25,30,35,35
+District,Gaber Hills School District,ESU-14,2025–26,29,36,35
+District,Mission School District,ESU-14,2021–22,28,50,22
+District,Mission School District,ESU-14,2022–23,27,51,22
+District,Mission School District,ESU-14,2023–24,22,60,18
+District,Mission School District,ESU-14,2024–25,22,60,18
+District,Mission School District,ESU-14,2025–26,22,60,18
+District,Riverview School District,ESU-14,2021–22,30,50,20
+District,Riverview School District,ESU-14,2022–23,29,50,21
+District,Riverview School District,ESU-14,2023–24,27,49,24
+District,Riverview School District,ESU-14,2024–25,27,49,24
+District,Riverview School District,ESU-14,2025–26,27,49,24
+District,Lincoln East School District,ESU-14,2021–22,60,35,4
+District,Lincoln East School District,ESU-14,2022–23,58,37,4
+District,Lincoln East School District,ESU-14,2023–24,58,37,4
+District,Lincoln East School District,ESU-14,2024–25,55,40,4
+District,Lincoln East School District,ESU-14,2025–26,58,37,4
+School,Lincoln West Elementary,Lincoln West School District,2021–22,58,40,2
+School,Lincoln West Elementary,Lincoln West School District,2022–23,57,40,3
+School,Lincoln West Elementary,Lincoln West School District,2023–24,56,40,4
+School,Lincoln West Elementary,Lincoln West School District,2024–25,50,40,10
+School,Lincoln West Elementary,Lincoln West School District,2025–26,53,42,4
+School,Ben Franklin Elementary,Davton School District,2021–22,53,42,4
+School,Ben Franklin Elementary,Davton School District,2022–23,53,42,4
+School,Ben Franklin Elementary,Davton School District,2023–24,53,42,4
+School,Ben Franklin Elementary,Davton School District,2024–25,49,40,11
+School,Ben Franklin Elementary,Davton School District,2025–26,50,42,7
+`;
+
+// ---- Parse CSV ----
+const rows = csv.trim().split(/\r?\n/).map(r => r.split(","));
+const headers = rows[0];
+const typeIdx = headers.indexOf("Organization Type");
+const orgIdx = headers.indexOf("Organization");
+const parentIdx = headers.indexOf("Parent Organization");
+const yearIdx = headers.indexOf("Test Administration");
+const devIdx = headers.indexOf("Developing %");
+const onIdx = headers.indexOf("On Track %");
+const advIdx = headers.indexOf("Advanced %");
+
+// categories (years)
+const categories = [...new Set(rows.slice(1).map(r => r[yearIdx]))];
+
+// collect data
+const byOrg = {};
+rows.slice(1).forEach(r => {
+  const orgType = r[typeIdx];
+  const org = r[orgIdx];
+  const year = r[yearIdx];
+  const dev = parseFloat(r[devIdx]);
+  const on = parseFloat(r[onIdx]);
+  const adv = parseFloat(r[advIdx]);
+  const prof = on + adv;
+
+  if (!byOrg[org]) {
+    let color, lineWidth = 2, dashStyle = "Solid";
+    if (org === "State Average") { color = "black"; lineWidth = 4; dashStyle = "Solid"; }
+    else if (orgType === "Region") { color = "#0275D8"; lineWidth = 3; dashStyle = "Dash"; }
+    else if (org === "Lincoln West School District") { color = "#444"; lineWidth = 3; dashStyle = "Dot"; }
+
+    byOrg[org] = { name: org, data: [], color, lineWidth, dashStyle };
+  }
+  byOrg[org].data.push(prof);
+});
+
+const series = Object.values(byOrg);
+
+Highcharts.chart("container", {
+  chart: { type: "line", height: 650 },
+  title: { text: "ELA Grade 5 — Percent Proficient (On Track + Advanced)", align: "center" },
+
+  xAxis: {
+    type: "category",          // 👈 forces categorical axis
+    categories: categories,    // explicit list of school years
+    title: { text: "School Year" },
+    tickInterval: 1,           // one tick per category
+    startOnTick: true,
+    endOnTick: true
+  },
+
+  yAxis: {
+    title: { text: "Percent Proficient" },
+    min: 0,
+    max: 100,
+    labels: { format: "{value}%" },
+    plotBands: [
+      { from: 0, to: 60, color: "#FFF3CF",
+        label: { text: "Developing (<60%)", align: "left", x: 5, style: { color: "#000", fontWeight: "bold" } } },
+      { from: 60, to: 100, color: "#CAECEF",
+        label: { text: "Proficient (≥60%)", align: "left", x: 5, style: { color: "#000", fontWeight: "bold" } } }
+    ],
+    plotLines: [
+      { value: 60, color: "#333", dashStyle: "ShortDash", width: 1, zIndex: 2,
+        label: { text: "60% Proficiency Target", align: "right", x: -10, style: { color: "#000", backgroundColor: "#fff" } } }
+    ]
+  },
+
+  tooltip: {
+    useHTML: true,
+    formatter: function () {
+      return `
+        <strong>${this.series.name}</strong><br/>
+        <b>${this.key}</b><br/>
+        Percent Proficient: <b>${this.y.toFixed(1)}%</b>
+      `;
+    }
+  },
+
+  legend: { layout: "vertical", align: "right", verticalAlign: "middle", navigation: { enabled: true } },
+  plotOptions: { series: { marker: { enabled: true } } },
+  series
+});
+</script>
+</body>
+</html>
