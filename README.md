@@ -1,2 +1,2 @@
 # ux-prototypes
-Interactive chart and UX prototypes for portfolio case studies.
+Interactive chart experiments and UI prototypes for statewide assessment reporting and longitudinal data visualization.
